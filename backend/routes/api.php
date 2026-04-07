@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DealController;
+use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\TenantController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
@@ -18,6 +19,8 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::post('/register', [TenantController::class, 'register']);
+
+Route::get('/health', HealthController::class);
 
 
 /*

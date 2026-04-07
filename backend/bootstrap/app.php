@@ -25,6 +25,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('api', [
             \App\Http\Middleware\TenantContextMiddleware::class,
         ]);
+
+        // Health endpoint never gets rate-limited
+        $middleware->throttleWithRedis(
+            'api',
+            ['/api/health'],
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (
