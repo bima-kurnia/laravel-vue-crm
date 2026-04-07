@@ -33,6 +33,19 @@
       :rows="15"
       class="crm-table"
     >
+      <!-- empty state -->
+      <template #empty>
+        <EmptyState
+          icon="pi pi-users"
+          title="No customers yet"
+          description="Add your first customer or adjust your filters to see results."
+        >
+          <template #action>
+            <Button label="Add Customer" icon="pi pi-plus" @click="openCreate" />
+          </template>
+        </EmptyState>
+      </template>
+
       <Column field="name"    header="Name">
         <template #body="{ data }">
           <RouterLink :to="{ name: 'customer-detail', params: { id: data.id } }" class="row-link">
@@ -102,6 +115,7 @@ import Select             from 'primevue/select'
 import Dialog             from 'primevue/dialog'
 import Paginator          from 'primevue/paginator'
 import PageHeader         from '@/components/shared/PageHeader.vue'
+import EmptyState         from '@/components/shared/EmptyState.vue'
 import CustomerForm       from '@/components/customers/CustomerForm.vue'
 import CustomerStatusBadge from '@/components/customers/CustomerStatusBadge.vue'
 import { useCustomerStore } from '@/stores/customers'

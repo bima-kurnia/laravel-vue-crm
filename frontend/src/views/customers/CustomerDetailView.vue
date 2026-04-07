@@ -24,7 +24,14 @@
       <!-- Activity feed -->
       <div class="detail-card">
         <h3 class="card-title">Activity</h3>
-        <div v-if="activities.length === 0" class="empty-state">No activity yet.</div>
+
+        <EmptyState
+          v-if="activities.length === 0"
+          icon="pi pi-clock"
+          title="No activity recorded"
+          description="Actions on this customer will appear here."
+        />
+
         <ul v-else class="activity-feed">
           <li v-for="a in activities" :key="a.id" class="activity-item">
             <span class="activity-event">{{ a.event }}</span>
@@ -64,6 +71,7 @@ import Button              from 'primevue/button'
 import Dialog              from 'primevue/dialog'
 import ProgressSpinner     from 'primevue/progressspinner'
 import PageHeader          from '@/components/shared/PageHeader.vue'
+import EmptyState          from '@/components/shared/EmptyState.vue'
 import CustomerStatusBadge from '@/components/customers/CustomerStatusBadge.vue'
 import CustomerForm        from '@/components/customers/CustomerForm.vue'
 import { useCustomerStore }from '@/stores/customers'

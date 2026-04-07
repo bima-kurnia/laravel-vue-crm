@@ -2,7 +2,25 @@
   <div>
     <PageHeader title="Dashboard" subtitle="Pipeline overview" />
 
-    <div v-if="pipeline" class="pipeline-grid">
+    <ProgressSpinner v-if="!pipeline" />
+
+    <EmptyState
+      v-else-if="Object.values(pipeline).every(s => s.total_count === 0)"
+      icon="pi pi-chart-bar"
+      title="No deals in the pipeline"
+      description="Create your first deal to see the pipeline summary here."
+    >
+      <template #action>
+        <Button
+          label="Go to deals"
+          icon="pi pi-briefcase"
+          severity="secondary"
+          @click="router.push({ name: 'deals' })"
+        />
+      </template>
+    </EmptyState>
+
+    <div v-else class="pipeline-grid">
       <div
         v-for="(data, stage) in pipeline"
         :key="stage"
@@ -13,19 +31,21 @@
         <div class="pipeline-value">{{ formatCurrency(data.total_value) }}</div>
       </div>
     </div>
-
-    <ProgressSpinner v-else />
   </div>
 </template>
 
 <script setup>
-import { onMounted }      from 'vue'
+import { onMounted }     from 'vue'
+import { useRouter }     from 'vue-router'
 import { storeToRefs }   from 'pinia'
+import Button            from 'primevue/button'
 import ProgressSpinner   from 'primevue/progressspinner'
 import PageHeader        from '@/components/shared/PageHeader.vue'
+import EmptyState        from '@/components/shared/EmptyState.vue'
 import { useDealStore }  from '@/stores/deals'
 
-const store    = useDealStore()
+const router = useRouter()
+const store = useDealStore()
 const { pipeline } = storeToRefs(store)
 
 onMounted(() => store.fetchPipeline())

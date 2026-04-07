@@ -1,10 +1,12 @@
-import { createApp } from 'vue'
+  import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura'
 import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
 import 'primeicons/primeicons.css'
+import 'nprogress/nprogress.css' // base nprogress styles
+import './assets/nprogress.css' // overrides nprogress styles
 
 import App from './App.vue'
 import router from './router'

@@ -30,9 +30,17 @@
         </div>
       </div>
 
+      <!-- Stage history -->
       <div class="detail-card">
         <h3 class="card-title">Stage History</h3>
-        <div v-if="stageHistory.length === 0" class="empty-state">No stage changes yet.</div>
+
+        <EmptyState
+          v-if="stageHistory.length === 0"
+          icon="pi pi-arrow-right-arrow-left"
+          title="No stage changes yet"
+          description="Stage moves will be recorded here as the deal progresses."
+        />
+
         <ul v-else class="activity-feed">
           <li v-for="a in stageHistory" :key="a.id" class="activity-item">
             <span>{{ a.payload.from }} → {{ a.payload.to }}</span>
@@ -103,6 +111,7 @@ import Dialog             from 'primevue/dialog'
 import Tag                from 'primevue/tag'
 import ProgressSpinner    from 'primevue/progressspinner'
 import PageHeader         from '@/components/shared/PageHeader.vue'
+import EmptyState         from '@/components/shared/EmptyState.vue'
 import DealStageBadge     from '@/components/deals/DealStageBadge.vue'
 import DealForm           from '@/components/deals/DealForm.vue'
 import { useDealStore }   from '@/stores/deals'

@@ -1,5 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import NProgress from 'nprogress'
+
+NProgress.configure({
+  showSpinner: false, // bar only, no spinner
+  speed: 300,
+  minimum: 0.1,
+})
 
 const routes = [
   {
@@ -64,6 +71,8 @@ const router = createRouter({
 
 // Navigation guard
 router.beforeEach(async (to) => {
+  NProgress.start()
+
   const auth = useAuthStore()
 
   // If we have a token but no user yet, rehydrate from /me
@@ -72,12 +81,20 @@ router.beforeEach(async (to) => {
   }
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
+    NProgress.done()
+
     return { name: 'login', query: { redirect: to.fullPath } }
   }
 
   if (to.meta.public && auth.isAuthenticated) {
+    NProgress.done()
+
     return { name: 'dashboard' }
   }
+})
+
+router.afterEach(() => {
+  NProgress.done()
 })
 
 export default router

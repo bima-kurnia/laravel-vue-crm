@@ -30,6 +30,18 @@
     </div>
 
     <DataTable :value="deals" :loading="loading" striped-rows class="crm-table">
+      <template #empty>
+        <EmptyState
+          icon="pi pi-briefcase"
+          title="No deals found"
+          description="Create your first deal or adjust your filters to see results."
+        >
+          <template #action>
+            <Button label="Add Deal" icon="pi pi-plus" @click="openCreate" />
+          </template>
+        </EmptyState>
+      </template>
+
       <Column field="title" header="Title">
         <template #body="{ data }">
           <RouterLink :to="{ name: 'deal-detail', params: { id: data.id } }" class="row-link">
@@ -103,6 +115,7 @@ import Dialog            from 'primevue/dialog'
 import Paginator         from 'primevue/paginator'
 import Tag               from 'primevue/tag'
 import PageHeader        from '@/components/shared/PageHeader.vue'
+import EmptyState        from '@/components/shared/EmptyState.vue'
 import DealForm          from '@/components/deals/DealForm.vue'
 import DealStageBadge    from '@/components/deals/DealStageBadge.vue'
 import { useDealStore }  from '@/stores/deals'

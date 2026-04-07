@@ -24,6 +24,14 @@
     </div>
 
     <DataTable :value="activities" :loading="loading" striped-rows class="crm-table">
+      <template #empty>
+        <EmptyState
+          icon="pi pi-list"
+          title="No activity yet"
+          description="Activity is recorded automatically when customers and deals are created or updated."
+        />
+      </template>
+
       <Column field="event" header="Event">
         <template #body="{ data }">
           <Tag :value="data.event" severity="secondary" />
@@ -61,6 +69,7 @@ import Select     from 'primevue/select'
 import Tag        from 'primevue/tag'
 import Paginator  from 'primevue/paginator'
 import PageHeader from '@/components/shared/PageHeader.vue'
+import EmptyState from '@/components/shared/EmptyState.vue'
 import { useApi } from '@/api/useApi'
 
 const api = useApi()
