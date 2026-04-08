@@ -1,6 +1,18 @@
 <template>
   <div>
-    <PageHeader title="Activity Log" subtitle="Immutable audit trail" />
+    <PageHeader title="Activity Log" subtitle="Immutable audit trail">
+      <template #actions>
+        <Button
+          v-if="hasActiveFilters"
+          label="Clear filters"
+          icon="pi pi-times"
+          severity="secondary"
+          text
+          size="small"
+          @click="resetFilters"
+        />
+      </template>
+    </PageHeader>
 
     <div class="filters">
       <Select
@@ -10,7 +22,7 @@
         option-value="value"
         placeholder="All types"
         show-clear
-        @change="fetchActivities"
+        @change="e => setFilter('subject_type', e.value)"
       />
       <Select
         v-model="filters.event"
@@ -19,7 +31,7 @@
         option-value="value"
         placeholder="All events"
         show-clear
-        @change="fetchActivities"
+        @change="e => setFilter('event', e.value)"
       />
     </div>
 
@@ -56,13 +68,15 @@
       :rows="meta.per_page"
       :total-records="meta.total"
       :first="(meta.current_page - 1) * meta.per_page"
-      @page="onPage"
+      @page="e => setFilter('page', e.page + 1)"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { storeToRefs } from 'pinia'
+import Button     from 'primevue/button'
 import DataTable  from 'primevue/datatable'
 import Column     from 'primevue/column'
 import Select     from 'primevue/select'
@@ -71,13 +85,26 @@ import Paginator  from 'primevue/paginator'
 import PageHeader from '@/components/shared/PageHeader.vue'
 import EmptyState from '@/components/shared/EmptyState.vue'
 import { useApi } from '@/api/useApi'
+import { useUrlFilters } from '@/composables/useUrlFilters'
+import { ref as vRef } from 'vue'
 
 const api = useApi()
 
 const activities = ref([])
 const meta       = ref(null)
 const loading    = ref(false)
-const filters    = reactive({ subject_type: null, event: null, page: 1 })
+
+const { filters, setFilter, resetFilters, toApiParams } = useUrlFilters({
+  subject_type: null,
+  event:        null,
+  page:         1,
+})
+
+const hasActiveFilters = computed(() =>
+  !!filters.subject_type || !!filters.event
+)
+
+watch(toApiParams, fetchActivities, { immediate: true })
 
 const typeOptions = [
   { label: 'Customer', value: 'customer' },
@@ -92,25 +119,18 @@ const eventOptions = [
   { label: 'Stage Changed', value: 'stage_changed' },
 ]
 
-onMounted(fetchActivities)
-
 async function fetchActivities() {
   loading.value = true
-  const params  = Object.fromEntries(
-    Object.entries(filters).filter(([, v]) => v !== null && v !== '')
-  )
-  const query = new URLSearchParams(params).toString()
+
+  const query = new URLSearchParams(toApiParams.value).toString()
   const { data } = await api.get(`/activities${query ? '?' + query : ''}`)
+
   if (data) {
     activities.value = data.data
     meta.value       = data.meta
   }
-  loading.value = false
-}
 
-async function onPage(event) {
-  filters.page = event.page + 1
-  await fetchActivities()
+  loading.value = false
 }
 
 function formatDate(iso) {

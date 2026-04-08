@@ -2,6 +2,16 @@
   <div>
     <PageHeader title="Customers" :subtitle="`${meta?.total ?? 0} total`">
       <template #actions>
+        <Button
+          v-if="hasActiveFilters"
+          label="Clear filters"
+          icon="pi pi-times"
+          severity="secondary"
+          text
+          size="small"
+          @click="resetFilters"
+        />
+
         <Button label="Add Customer" icon="pi pi-plus" @click="openCreate" />
       </template>
     </PageHeader>
@@ -11,7 +21,7 @@
       <InputText
         v-model="filters.search"
         placeholder="Search name, email, company…"
-        @update:modelValue="debouncedFetch"
+        @update:modelValue="debouncedSearch"
       />
       <Select
         v-model="filters.status"
@@ -20,7 +30,7 @@
         option-value="value"
         placeholder="All statuses"
         show-clear
-        @change="fetchCustomers"
+        @change="e => setFilter('status', e.value)"
       />
     </div>
 
@@ -46,7 +56,7 @@
         </EmptyState>
       </template>
 
-      <Column field="name"    header="Name">
+      <Column field="name" header="Name">
         <template #body="{ data }">
           <RouterLink :to="{ name: 'customer-detail', params: { id: data.id } }" class="row-link">
             {{ data.name }}
@@ -103,10 +113,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useDebounceFn }  from '@vueuse/core'
 import { useToast }       from 'primevue/usetoast'
 import { useConfirm }     from 'primevue/useconfirm'
+import { storeToRefs }    from 'pinia'
 import DataTable          from 'primevue/datatable'
 import Column             from 'primevue/column'
 import Button             from 'primevue/button'
@@ -120,8 +131,9 @@ import CustomerForm       from '@/components/customers/CustomerForm.vue'
 import CustomerStatusBadge from '@/components/customers/CustomerStatusBadge.vue'
 import { useCustomerStore } from '@/stores/customers'
 import { useRole } from '@/composables/useRole'
-const { isOwner, isAdmin, isOwnerOrAdmin } = useRole()
-import { storeToRefs }    from 'pinia'
+import { useUrlFilters }   from '@/composables/useUrlFilters'
+
+const { isOwnerOrAdmin } = useRole()
 
 const store   = useCustomerStore()
 const toast   = useToast()
@@ -129,7 +141,19 @@ const confirm = useConfirm()
 
 const { customers, meta, loading } = storeToRefs(store)
 
-const filters = reactive({ search: '', status: null, page: 1 })
+const { filters, setFilter, resetFilters, toApiParams } = useUrlFilters({
+  search:   '',
+  status:   null,
+  page:     1,
+})
+
+const hasActiveFilters = computed(() =>
+  !!filters.search || !!filters.status
+)
+
+// Fetch whenever the URL query changes
+watch(toApiParams, fetchCustomers, { immediate: true })
+
 const statusOptions = [
   { label: 'Active',   value: 'active'   },
   { label: 'Inactive', value: 'inactive' },
@@ -142,13 +166,14 @@ const saving        = ref(false)
 const formData      = ref({})
 const formErrors    = ref({})
 
-onMounted(fetchCustomers)
-
 async function fetchCustomers() {
-  await store.fetchAll({ ...filters })
+  await store.fetchAll(toApiParams.value)
 }
 
-const debouncedFetch = useDebounceFn(fetchCustomers, 350)
+const debouncedSearch = useDebounceFn(
+  (value) => setFilter('search', value),
+  350,
+)
 
 async function onPage(event) {
   filters.page = event.page + 1
@@ -190,7 +215,10 @@ async function handleSubmit(payload) {
     summary:  editing.value ? 'Customer updated' : 'Customer created',
     life:     3000,
   })
+
   dialogVisible.value = false
+
+  await fetchCustomers()
 }
 
 function confirmDelete(customer) {

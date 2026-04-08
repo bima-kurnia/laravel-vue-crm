@@ -2,13 +2,27 @@
   <div>
     <PageHeader title="Deals" :subtitle="`${meta?.total ?? 0} total`">
       <template #actions>
+        <Button
+          v-if="hasActiveFilters"
+          label="Clear filters"
+          icon="pi pi-times"
+          severity="secondary"
+          text
+          size="small"
+          @click="resetFilters"
+        />
+
         <Button label="Add Deal" icon="pi pi-plus" @click="openCreate" />
       </template>
     </PageHeader>
 
     <!-- Filters -->
     <div class="filters">
-      <InputText v-model="filters.search" placeholder="Search deals…" @update:modelValue="debouncedFetch" />
+      <InputText
+        v-model="filters.search"
+        placeholder="Search deals…"
+        @update:modelValue="debouncedSearch"
+      />
       <Select
         v-model="filters.status"
         :options="statusOptions"
@@ -16,7 +30,7 @@
         option-value="value"
         placeholder="All statuses"
         show-clear
-        @change="fetchDeals"
+        @change="e => setFilter('status', e.value)"
       />
       <Select
         v-model="filters.stage"
@@ -25,7 +39,7 @@
         option-value="value"
         placeholder="All stages"
         show-clear
-        @change="fetchDeals"
+        @change="e => setFilter('stage', e.value)"
       />
     </div>
 
@@ -44,7 +58,10 @@
 
       <Column field="title" header="Title">
         <template #body="{ data }">
-          <RouterLink :to="{ name: 'deal-detail', params: { id: data.id } }" class="row-link">
+          <RouterLink
+            :to="{ name: 'deal-detail', params: { id: data.id } }"
+            class="row-link"
+          >
             {{ data.title }}
           </RouterLink>
         </template>
@@ -81,7 +98,7 @@
       :rows="meta.per_page"
       :total-records="meta.total"
       :first="(meta.current_page - 1) * meta.per_page"
-      @page="onPage"
+      @page="e => setFilter('page', e.page + 1)"
     />
 
     <Dialog
@@ -102,30 +119,42 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { useDebounceFn }  from '@vueuse/core'
-import { useToast }       from 'primevue/usetoast'
-import { storeToRefs }   from 'pinia'
-import DataTable         from 'primevue/datatable'
-import Column            from 'primevue/column'
-import Button            from 'primevue/button'
-import InputText         from 'primevue/inputtext'
-import Select            from 'primevue/select'
-import Dialog            from 'primevue/dialog'
-import Paginator         from 'primevue/paginator'
-import Tag               from 'primevue/tag'
-import PageHeader        from '@/components/shared/PageHeader.vue'
-import EmptyState        from '@/components/shared/EmptyState.vue'
-import DealForm          from '@/components/deals/DealForm.vue'
-import DealStageBadge    from '@/components/deals/DealStageBadge.vue'
-import { useDealStore }  from '@/stores/deals'
+import { ref, computed, watch } from 'vue'
+import { useDebounceFn }        from '@vueuse/core'
+import { useToast }             from 'primevue/usetoast'
+import { storeToRefs }          from 'pinia'
+import DataTable                from 'primevue/datatable'
+import Column                   from 'primevue/column'
+import Button                   from 'primevue/button'
+import InputText                from 'primevue/inputtext'
+import Select                   from 'primevue/select'
+import Dialog                   from 'primevue/dialog'
+import Paginator                from 'primevue/paginator'
+import Tag                      from 'primevue/tag'
+import PageHeader               from '@/components/shared/PageHeader.vue'
+import EmptyState               from '@/components/shared/EmptyState.vue'
+import DealForm                 from '@/components/deals/DealForm.vue'
+import DealStageBadge           from '@/components/deals/DealStageBadge.vue'
+import { useDealStore }         from '@/stores/deals'
+import { useUrlFilters }        from '@/composables/useUrlFilters'
 
 const store = useDealStore()
 const toast = useToast()
 
 const { deals, meta, loading } = storeToRefs(store)
 
-const filters = reactive({ search: '', status: null, stage: null, page: 1 })
+const { filters, setFilter, resetFilters, toApiParams } = useUrlFilters({
+  search: '',
+  status: null,
+  stage:  null,
+  page:   1,
+})
+
+const hasActiveFilters = computed(() =>
+  !!filters.search || !!filters.status || !!filters.stage
+)
+
+watch(toApiParams, fetchDeals, { immediate: true })
 
 const statusOptions = [
   { label: 'Open',    value: 'open'    },
@@ -148,18 +177,14 @@ const saving        = ref(false)
 const formData      = ref({})
 const formErrors    = ref({})
 
-onMounted(fetchDeals)
-
 async function fetchDeals() {
-  await store.fetchAll({ ...filters })
+  await store.fetchAll(toApiParams.value)
 }
 
-const debouncedFetch = useDebounceFn(fetchDeals, 350)
-
-async function onPage(event) {
-  filters.page = event.page + 1
-  await fetchDeals()
-}
+const debouncedSearch = useDebounceFn(
+  (value) => setFilter('search', value),
+  350,
+)
 
 function openCreate() {
   editing.value = false
@@ -170,7 +195,11 @@ function openCreate() {
 
 function openEdit(deal) {
   editing.value = true
-  formData.value = { ...deal, customer_id: deal.customer?.id, owner_id: deal.owner?.id }
+  formData.value    = {
+    ...deal,
+    customer_id: deal.customer?.id,
+    owner_id:    deal.owner?.id,
+  }
   formErrors.value = {}
   dialogVisible.value = true
 }
@@ -191,8 +220,15 @@ async function handleSubmit(payload) {
     return
   }
 
-  toast.add({ severity: 'success', summary: editing.value ? 'Deal updated' : 'Deal created', life: 3000 })
+  toast.add({
+    severity: 'success',
+    summary:  editing.value ? 'Deal updated' : 'Deal created',
+    life:     3000,
+  })
+
   dialogVisible.value = false
+
+  await fetchDeals()
 }
 
 function statusSeverity(status) {
