@@ -18,16 +18,22 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(ActivityService::class);
+        $this->app->singleton(NotificationService::class);
+        $this->app->singleton(TenantService::class);
 
         $this->app->singleton(CustomerService::class, function ($app) {
-            return new CustomerService($app->make(ActivityService::class));
+            return new CustomerService(
+                $app->make(ActivityService::class),
+                $app->make(NotificationService::class),
+            );
         });
 
         $this->app->singleton(DealService::class, function ($app) {
-            return new DealService($app->make(ActivityService::class));
+            return new DealService(
+                $app->make(ActivityService::class),
+                $app->make(NotificationService::class),
+            );
         });
-
-        $this->app->singleton(TenantService::class);
     }
 
     /**

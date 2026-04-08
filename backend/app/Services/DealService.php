@@ -13,7 +13,10 @@ use Illuminate\Validation\ValidationException;
 
 class DealService
 {
-    public function __construct(private readonly ActivityService $activityService) {}
+    public function __construct(
+        private readonly ActivityService $activityService
+        private readonly NotificationService $notificationService
+    ) {}
 
     // -------------------------------------------------------------------------
     // List
@@ -146,6 +149,24 @@ class DealService
             'after' => $data,
         ]);
 
+        // Notify the assigned owner if they are not the actor
+        if ($deal->owner_id !== Auth::id()) {
+            $this->notificationService->notify(
+                recipient: $deal->owner,
+                type:      'deal.assigned',
+                title:     'Deal assigned to you',
+                body:      auth()->user()->name . ' assigned "' . $deal->title . '" to you.',
+                data:      ['deal_id' => $deal->id],
+            );
+        }
+
+        $this->notificationService->notifyTeam(
+            type:  'deal.created',
+            title: 'New deal created',
+            body:  auth()->user()->name . ' created "' . $deal->title . '".',
+            data:  ['deal_id' => $deal->id],
+        );
+
         return $deal;
     }
 
@@ -227,6 +248,13 @@ class DealService
             'from' => $previousStage,
             'to'   => $newStage,
         ]);
+
+        $this->notificationService->notifyTeam(
+            type:  'deal.stage_changed',
+            title: 'Deal stage updated',
+            body:  auth()->user()->name . ' moved "' . $deal->title . '" to ' . $newStage . '.',
+            data:  ['deal_id' => $deal->id, 'stage' => $newStage],
+        );
 
         return $deal;
     }

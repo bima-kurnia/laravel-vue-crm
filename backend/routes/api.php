@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DealController;
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\TenantController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
@@ -78,5 +79,12 @@ Route::middleware(['auth:sanctum', 'resolve.tenant', 'tenant.context'])
             Route::get('/subject/{type}/{id}', [ActivityController::class, 'subjectFeed']);
             Route::get('/deals/{id}/stage-history', [ActivityController::class, 'stageHistory']);
             Route::get('/{id}', [ActivityController::class, 'show']);
+        });
+
+        Route::prefix('notifications')->group(function () {
+            Route::get('/', [NotificationController::class, 'index']);
+            Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
+            Route::patch('/read-all', [NotificationController::class, 'markAllRead']);
+            Route::patch('/{id}/read', [NotificationController::class, 'markRead']);
         });
     });

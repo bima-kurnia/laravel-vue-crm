@@ -13,7 +13,10 @@ use Illuminate\Support\Facades\Log;
 
 class CustomerService
 {
-    public function __construct(private readonly ActivityService $activityService) {}
+    public function __construct(
+        private readonly ActivityService $activityService, 
+        private readonly NotificationService $notificationService,
+    ) {}
 
     // -------------------------------------------------------------------------
     // List
@@ -89,6 +92,13 @@ class CustomerService
         $this->activityService->log($customer, 'created', [
             'after' => $data,
         ]);
+
+        $this->notificationService->notifyTeam(
+            type:  'customer.created',
+            title: 'New customer added',
+            body:  auth()->user()->name . ' added "' . $customer->name . '".',
+            data:  ['customer_id' => $customer->id],
+        );
 
         return $customer;
     }
