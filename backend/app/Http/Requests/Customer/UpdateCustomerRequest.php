@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Customer;
 
+use App\Rules\SafeJsonbKey;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -28,7 +29,7 @@ class UpdateCustomerRequest extends FormRequest
             'phone'       => ['sometimes', 'nullable', 'string', 'max:50'],
             'company'     => ['sometimes', 'nullable', 'string', 'max:255'],
             'status'      => ['sometimes', 'string', 'in:active,inactive,lead'],
-            'custom_data' => ['sometimes', 'array'],
+            'custom_data' => ['sometimes', 'array', new SafeJsonbKey()],
         ];
     }
 }

@@ -12,13 +12,18 @@
     <TransitionGroup name="cfe-list" tag="div" class="cfe-rows">
       <div v-for="(row, index) in rows" :key="row.uid" class="cfe-row">
         <!-- Key input -->
-        <InputText
-          v-model="row.key"
-          placeholder="field_name"
-          class="cfe-key"
-          :invalid="!!keyError(index)"
-          @update:modelValue="emitChange"
-        />
+        <div class="cfe-key-wrap">
+          <InputText
+            v-model="row.key"
+            placeholder="field_name"
+            class="cfe-key"
+            :invalid="isInvalidKey(index)"
+            @update:modelValue="emitChange"
+          />
+          <small v-if="keyError(index)" class="cfe-key-error">
+            {{ keyError(index) }}
+          </small>
+        </div>
 
         <!-- Type selector -->
         <Select
@@ -71,11 +76,6 @@
         />
       </div>
     </TransitionGroup>
-
-    <!-- Key validation summary -->
-    <small v-if="hasDuplicateKeys" class="cfe-error">
-      Duplicate field names detected. Each field name must be unique.
-    </small>
   </div>
 </template>
 
@@ -110,6 +110,10 @@ const typeOptions = [
   { label: 'Boolean', value: 'boolean' },
   { label: 'Date',    value: 'date'    },
 ]
+
+// Forbidden key pattern — mirrors App/Rules/SafeJsonbKey.php exactly
+const FORBIDDEN_PATTERN = /[\.\$\s\x00`'"]/u
+const MAX_KEY_LENGTH    = 64
 
 const rows = ref([])
 
@@ -166,27 +170,55 @@ function onTypeChange(index) {
   rows.value[index].value = defaults[rows.value[index].type]
   emitChange()
 }
-
 // -------------------------------------------------------------------------
 // Validation
 // -------------------------------------------------------------------------
-const hasDuplicateKeys = computed(() => {
-  const keys = rows.value.map(r => r.key).filter(Boolean)
-  return keys.length !== new Set(keys).size
-})
-
+/**
+ * Returns an error string for the key at the given index, or null if valid.
+ * Checks in priority order: empty → too long → forbidden chars → duplicate.
+ */
 function keyError(index) {
-  const key = rows.value[index].key
-  if (!key) return null
+  const key = rows.value[index]?.key
+
+  // blank input is fine while still typing — not an error until submit
+  if (!key) {
+    return 'Field name is required.'
+  }
+
+  if (key.length > MAX_KEY_LENGTH) {
+    return `Key too long (max ${MAX_KEY_LENGTH} characters).`
+  }
+
+  if (FORBIDDEN_PATTERN.test(key)) {
+    return 'No dots, dollar signs, spaces, or quotes allowed.'
+  }
+
   const others = rows.value.filter((_, i) => i !== index).map(r => r.key)
-  return others.includes(key) ? 'Duplicate key' : null
+  if (others.includes(key)) {
+    return 'Duplicate key — each field name must be unique.'
+  }
+
+  return null
+}
+
+const hasErrors = computed(() =>
+  rows.value.some((_, i) => keyError(i) !== null)
+)
+
+function isInvalidKey(index) {
+  const key = rows.value[index]?.key
+
+  // Don't mark empty as invalid visually
+  if (!key) return false
+
+  return keyError(index) !== null
 }
 
 // -------------------------------------------------------------------------
 // Emit serialised object to parent
 // -------------------------------------------------------------------------
 function emitChange() {
-  if (hasDuplicateKeys.value) return
+  if (hasErrors.value) return // do not emit an invalid payload
 
   const output = {}
 
@@ -211,12 +243,13 @@ function emitChange() {
 .cfe-header   { display: flex; justify-content: space-between; align-items: center; }
 .cfe-title    { font-size: 0.875rem; font-weight: 600; color: var(--p-text-color); }
 .cfe-empty    { font-size: 0.8rem; color: var(--p-text-muted-color); padding: 0.5rem 0; }
-.cfe-rows     { display: flex; flex-direction: column; gap: 0.5rem; }
-.cfe-row      { display: grid; grid-template-columns: 160px 110px 1fr 32px; gap: 0.5rem; align-items: center; }
+.cfe-rows     { display: flex; flex-direction: column; gap: 0.625rem; }
+.cfe-row      { display: grid; grid-template-columns: 180px 110px 1fr 32px; gap: 0.5rem; align-items: start; }
+.cfe-key-wrap { display: flex; flex-direction: column; gap: 0.2rem; }
 .cfe-key      { font-family: monospace; font-size: 0.8rem; }
+.cfe-key-error { font-size: 0.8rem; color: var(--p-red-500); }
 .cfe-value    { min-width: 0; }
-.cfe-remove   { flex-shrink: 0; }
-.cfe-error    { color: var(--p-red-500); font-size: 0.8rem; }
+.cfe-remove   { flex-shrink: 0; margin-top: 2px; }
 
 /* TransitionGroup */
 .cfe-list-enter-active,

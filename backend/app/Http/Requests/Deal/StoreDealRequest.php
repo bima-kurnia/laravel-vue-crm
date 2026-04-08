@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Deal;
 
+use App\Rules\SafeJsonbKey;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -31,7 +32,7 @@ class StoreDealRequest extends FormRequest
             'status'              => ['sometimes', 'string', 'in:open,won,lost,stalled'],
             'stage'               => ['sometimes', 'string', 'in:prospecting,qualification,proposal,negotiation,closed'],
             'expected_close_date' => ['sometimes', 'nullable', 'date'],
-            'custom_data'         => ['sometimes', 'array'],
+            'custom_data'         => ['sometimes', 'array', new SafeJsonbKey()],
         ];
     }
 }
