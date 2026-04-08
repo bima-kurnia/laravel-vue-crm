@@ -6,7 +6,7 @@ import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
 import 'primeicons/primeicons.css'
 import 'nprogress/nprogress.css' // base nprogress styles
-import './assets/nprogress.css' // overrides nprogress styles
+import './assets/nprogress.css' // overrides base nprogress styles
 
 import App from './App.vue'
 import router from './router'

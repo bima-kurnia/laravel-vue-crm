@@ -80,12 +80,14 @@ router.beforeEach(async (to) => {
     await auth.fetchMe()
   }
 
+  // If user is not authenticated
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     NProgress.done()
 
     return { name: 'login', query: { redirect: to.fullPath } }
   }
 
+  // If user is authenticated
   if (to.meta.public && auth.isAuthenticated) {
     NProgress.done()
 
