@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DealController;
 use App\Http\Controllers\Api\ExportController;
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\TenantController;
 use App\Http\Controllers\Api\UserController;
@@ -16,13 +17,17 @@ use Illuminate\Support\Facades\Route;
 | Public routes — no auth required
 |--------------------------------------------------------------------------
 */
-Route::prefix('auth')->group(function () {
-    Route::post('/login', [AuthController::class, 'login']);
-});
 
+// Authentication & Account
+Route::post('auth/login', [AuthController::class, 'login']);
 Route::post('/register', [TenantController::class, 'register']);
 
+// API health check
 Route::get('/health', HealthController::class);
+
+// Invitations
+Route::get('/invitations/validate/{token}', [InvitationController::class, 'validate']);
+Route::post('/invitations/accept/{token}',  [InvitationController::class, 'accept']);
 
 /*
 |--------------------------------------------------------------------------
@@ -32,8 +37,12 @@ Route::get('/health', HealthController::class);
 Route::middleware(['auth:sanctum', 'resolve.tenant', 'tenant.context'])
     ->group(function () {
 
-        // Admin/owner only at the route layer too (defense in depth)
+        // Protected — owner/admin only
         Route::middleware('role:owner,admin')->group(function () {
+
+            // Users
+            Route::get('/users', [UserController::class, 'index']);
+
             // Force-delete route
             Route::delete('/customers/{id}/force', [CustomerController::class, 'forceDelete']);
             Route::delete('/deals/{id}/force', [DealController::class, 'forceDelete']);
@@ -42,8 +51,10 @@ Route::middleware(['auth:sanctum', 'resolve.tenant', 'tenant.context'])
             Route::patch('/customers/{id}/restore', [CustomerController::class, 'restore']);
             Route::patch('/deals/{id}/restore', [DealController::class, 'restore']);
 
-            // Users
-            Route::get('/users', [UserController::class, 'index']);
+            // Invitations
+            Route::get('/invitations', [InvitationController::class, 'index']);
+            Route::post('/invitations', [InvitationController::class, 'send']);
+            Route::delete('/invitations/{id}',[InvitationController::class, 'revoke']);
         });
 
         // Auth
