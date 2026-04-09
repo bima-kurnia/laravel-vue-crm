@@ -4,7 +4,10 @@
       <span class="page-title">{{ pageTitle }}</span>
     </div>
     <div class="topbar-right">
+      <NotificationBell />
+
       <span class="user-name">{{ auth.user?.name }}</span>
+
       <Button
         label="Logout"
         icon="pi pi-sign-out"
@@ -21,6 +24,7 @@
 import { computed }      from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Button            from 'primevue/button'
+import NotificationBell  from '@/components/notifications/NotificationBell.vue'
 import { useAuthStore }  from '@/stores/auth'
 
 const auth   = useAuthStore()

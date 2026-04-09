@@ -8,14 +8,15 @@ use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class DealService
 {
     public function __construct(
-        private readonly ActivityService $activityService
-        private readonly NotificationService $notificationService
+        private readonly ActivityService $activityService,
+        private readonly NotificationService $notificationService,
     ) {}
 
     // -------------------------------------------------------------------------

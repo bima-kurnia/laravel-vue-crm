@@ -23,7 +23,6 @@ Route::post('/register', [TenantController::class, 'register']);
 
 Route::get('/health', HealthController::class);
 
-
 /*
 |--------------------------------------------------------------------------
 | Protected routes — Bearer token + active tenant required
@@ -81,6 +80,7 @@ Route::middleware(['auth:sanctum', 'resolve.tenant', 'tenant.context'])
             Route::get('/{id}', [ActivityController::class, 'show']);
         });
 
+        // Notifications
         Route::prefix('notifications')->group(function () {
             Route::get('/', [NotificationController::class, 'index']);
             Route::get('/unread-count', [NotificationController::class, 'unreadCount']);

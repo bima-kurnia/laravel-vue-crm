@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Services\ActivityService;
 use App\Services\CustomerService;
 use App\Services\DealService;
+use App\Services\NotificationService;
 use App\Services\TenantService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
