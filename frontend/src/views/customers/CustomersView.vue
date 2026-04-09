@@ -12,6 +12,14 @@
           @click="resetFilters"
         />
 
+        <Button
+          label="Export CSV"
+          icon="pi pi-download"
+          severity="secondary"
+          :loading="exporting"
+          @click="exportCustomers(toApiParams)"
+        />
+
         <Button label="Add Customer" icon="pi pi-plus" @click="openCreate" />
       </template>
     </PageHeader>
@@ -130,12 +138,13 @@ import EmptyState         from '@/components/shared/EmptyState.vue'
 import CustomerForm       from '@/components/customers/CustomerForm.vue'
 import CustomerStatusBadge from '@/components/customers/CustomerStatusBadge.vue'
 import { useCustomerStore } from '@/stores/customers'
-import { useRole } from '@/composables/useRole'
-import { useUrlFilters }   from '@/composables/useUrlFilters'
+import { useExport }        from '@/composables/useExport'
+import { useRole }          from '@/composables/useRole'
+import { useUrlFilters }    from '@/composables/useUrlFilters'
 
+const store = useCustomerStore()
+const { exporting, exportCustomers } = useExport()
 const { isOwnerOrAdmin } = useRole()
-
-const store   = useCustomerStore()
 const toast   = useToast()
 const confirm = useConfirm()
 

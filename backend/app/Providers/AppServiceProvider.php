@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\User;
 use App\Services\ActivityService;
+use App\Services\CsvExportService;
 use App\Services\CustomerService;
 use App\Services\DealService;
 use App\Services\NotificationService;
@@ -19,6 +20,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(ActivityService::class);
+        $this->app->singleton(CsvExportService::class);
         $this->app->singleton(NotificationService::class);
         $this->app->singleton(TenantService::class);
 

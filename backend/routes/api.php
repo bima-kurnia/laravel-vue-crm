@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DealController;
+use App\Http\Controllers\Api\ExportController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\TenantController;
@@ -54,15 +55,19 @@ Route::middleware(['auth:sanctum', 'resolve.tenant', 'tenant.context'])
 
         // Customers
         Route::prefix('customers')->group(function () {
+            Route::get('/export', [ExportController::class, 'customers']);
             Route::get('/', [CustomerController::class, 'index']);
             Route::post('/', [CustomerController::class, 'store']);
             Route::get('/{id}', [CustomerController::class, 'show']);
             Route::patch('/{id}', [CustomerController::class, 'update']);
             Route::delete('/{id}', [CustomerController::class, 'destroy']);
+            Route::patch('/{id}/restore', [CustomerController::class, 'restore']);
+            Route::delete('/{id}/force',  [CustomerController::class, 'forceDelete']);
         });
 
         // Deals
         Route::prefix('deals')->group(function () {
+            Route::get('/export', [ExportController::class, 'deals']);
             Route::get('/pipeline', [DealController::class, 'pipeline']);
             Route::get('/', [DealController::class, 'index']);
             Route::post('/', [DealController::class, 'store']);
@@ -70,6 +75,8 @@ Route::middleware(['auth:sanctum', 'resolve.tenant', 'tenant.context'])
             Route::patch('/{id}', [DealController::class, 'update']);
             Route::patch('/{id}/stage', [DealController::class, 'moveStage']);
             Route::delete('/{id}', [DealController::class, 'destroy']);
+            Route::patch('/{id}/restore', [DealController::class, 'restore']);
+            Route::delete('/{id}/force',  [DealController::class, 'forceDelete']);
         });
 
         // Activities (read-only)

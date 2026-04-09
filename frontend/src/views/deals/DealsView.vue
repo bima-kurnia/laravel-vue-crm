@@ -12,6 +12,14 @@
           @click="resetFilters"
         />
 
+        <Button
+          label="Export CSV"
+          icon="pi pi-download"
+          severity="secondary"
+          :loading="exporting"
+          @click="exportDeals(toApiParams)"
+        />
+
         <Button label="Add Deal" icon="pi pi-plus" @click="openCreate" />
       </template>
     </PageHeader>
@@ -136,9 +144,11 @@ import EmptyState               from '@/components/shared/EmptyState.vue'
 import DealForm                 from '@/components/deals/DealForm.vue'
 import DealStageBadge           from '@/components/deals/DealStageBadge.vue'
 import { useDealStore }         from '@/stores/deals'
+import { useExport }            from '@/composables/useExport'
 import { useUrlFilters }        from '@/composables/useUrlFilters'
 
 const store = useDealStore()
+const { exporting, exportDeals } = useExport()
 const toast = useToast()
 
 const { deals, meta, loading } = storeToRefs(store)
