@@ -22,6 +22,12 @@ const routes = [
     meta:      { public: true },
   },
   {
+    path:      '/invite/:token',
+    name:      'accept-invite',
+    component: () => import('@/views/auth/AcceptInviteView.vue'),
+    meta:      { public: true },
+  },
+  {
     path:      '/',
     component: () => import('@/components/layout/AppShell.vue'),
     meta:      { requiresAuth: true },
@@ -56,6 +62,12 @@ const routes = [
         name:      'activities',
         component: () => import('@/views/activities/ActivitiesView.vue'),
       },
+      {
+        path:      'settings/team',
+        name:      'settings-team',
+        component: () => import('@/views/settings/TeamView.vue'),
+        meta: { requiresOwnerOrAdmin: true },
+      },
     ],
   },
   {
@@ -87,8 +99,15 @@ router.beforeEach(async (to) => {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
 
-  // If user is authenticated
+  // If user is authenticated but accessing public page
   if (to.meta.public && auth.isAuthenticated) {
+    NProgress.done()
+
+    return { name: 'dashboard' }
+  }
+
+  // If user is authenticated but is not owner or admin
+  if (to.meta.requiresOwnerOrAdmin && !auth.isOwnerOrAdmin) {
     NProgress.done()
 
     return { name: 'dashboard' }

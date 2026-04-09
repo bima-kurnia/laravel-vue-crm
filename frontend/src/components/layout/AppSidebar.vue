@@ -24,11 +24,19 @@
 </template>
 
 <script setup>
+import { useRole } from '@/composables/useRole'
+
+const { isOwnerOrAdmin } = useRole()
+
 const navItems = [
-  { name: 'dashboard',  label: 'Dashboard',  icon: 'pi pi-home', exact: true },
-  { name: 'customers',  label: 'Customers',  icon: 'pi pi-users' },
-  { name: 'deals',      label: 'Deals',      icon: 'pi pi-briefcase' },
-  { name: 'activities', label: 'Activities', icon: 'pi pi-list' },
+  { name: 'dashboard',     label: 'Dashboard',  icon: 'pi pi-home', exact: true },
+  { name: 'customers',     label: 'Customers',  icon: 'pi pi-users' },
+  { name: 'deals',         label: 'Deals',      icon: 'pi pi-briefcase' },
+  { name: 'activities',    label: 'Activities', icon: 'pi pi-list' },
+
+  ...(isOwnerOrAdmin.value
+    ? [{ name: 'settings-team', label: 'Team', icon: 'pi pi-user-plus', exact: true }]
+    : []),
 ]
 </script>
 

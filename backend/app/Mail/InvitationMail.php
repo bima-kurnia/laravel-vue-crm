@@ -34,7 +34,7 @@ class InvitationMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'You have been invited to join ' . $invitation->tenant->name,
+            subject: 'You have been invited to join ' . $this->invitation->tenant->name,
         );
     }
 

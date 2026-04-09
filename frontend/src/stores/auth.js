@@ -12,6 +12,10 @@ export const useAuthStore = defineStore('auth', () => {
   // Convert "token.value" to boolean.
   const isAuthenticated = computed(() => !!token.value)
 
+  const isOwnerOrAdmin = computed(() => {
+    return ['owner', 'admin'].includes(user.value?.role)
+  })
+
   function setSession(newToken, newUser) {
     token.value = newToken
     user.value  = newUser
@@ -60,6 +64,7 @@ export const useAuthStore = defineStore('auth', () => {
     token,
     user,
     isAuthenticated,
+    isOwnerOrAdmin,
     setSession,
     clearSession,
     fetchMe,
