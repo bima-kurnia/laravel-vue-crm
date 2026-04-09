@@ -116,6 +116,36 @@ export const useDealStore = defineStore('deals', () => {
     return { data, error }
   }
 
+  async function restore(id) {
+    const { data, error } = await api.patch(`/deals/${id}/restore`)
+
+    if (!error) {
+      deals.value = deals.value.filter(d => d.id !== id)
+
+      // Update total data in view
+      if (meta.value) {
+        meta.value.total--
+      }
+    }
+
+    return { data, error }
+  }
+
+  async function forceDelete(id) {
+    const { data, error } = await api.delete(`/deals/${id}/force`)
+
+    if (!error) {
+      deals.value = deals.value.filter(d => d.id !== id)
+
+      // Update total data in view
+      if (meta.value) {
+        meta.value.total--
+      }
+    }
+    
+    return { data, error }
+  }
+
   return {
     deals,
     current,
@@ -129,5 +159,7 @@ export const useDealStore = defineStore('deals', () => {
     update,
     moveStage,
     remove,
+    restore, 
+    forceDelete,
   }
 })

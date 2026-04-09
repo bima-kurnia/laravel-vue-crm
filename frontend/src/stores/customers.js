@@ -86,6 +86,36 @@ export const useCustomerStore = defineStore('customers', () => {
     return { data, error }
   }
 
+  async function restore(id) {
+    const { data, error } = await api.patch(`/customers/${id}/restore`)
+
+    if (!error) {
+      customers.value = customers.value.filter(c => c.id !== id)
+
+      // Update total data in view
+      if (meta.value) {
+        meta.value.total--
+      }
+    }
+
+    return { data, error }
+  }
+
+  async function forceDelete(id) {
+    const { data, error } = await api.delete(`/customers/${id}/force`)
+
+    if (!error) {
+      customers.value = customers.value.filter(c => c.id !== id)
+
+      // Update total data in view
+      if (meta.value) {
+        meta.value.total--
+      }
+    }
+    
+    return { data, error }
+  }
+
   return {
     customers,
     current,
@@ -96,5 +126,7 @@ export const useCustomerStore = defineStore('customers', () => {
     create,
     update,
     remove,
+    restore, 
+    forceDelete,
   }
 })
