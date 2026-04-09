@@ -16,6 +16,17 @@ class ListCustomerRequest extends FormRequest
     }
 
     /**
+     * Prepare data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            // Convert only_trashed=true from URL query
+            'only_trashed' => filter_var($this->only_trashed, FILTER_VALIDATE_BOOLEAN),
+        ]);
+    }
+    
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
@@ -23,14 +34,14 @@ class ListCustomerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'search'     => ['sometimes', 'string', 'max:100'],
-            'status'     => ['sometimes', 'string', 'in:active,inactive,lead'],
-            'company'    => ['sometimes', 'string', 'max:100'],
-            'sort_by'    => ['sometimes', 'string', 'in:name,email,company,created_at,updated_at'],
-            'sort_dir'   => ['sometimes', 'string', 'in:asc,desc'],
-            'per_page'   => ['sometimes', 'integer', 'min:1', 'max:100'],
-            'page'       => ['sometimes', 'integer', 'min:1'],
-            'with_trashed' => ['sometimes', 'boolean'],
+            'search'        => ['sometimes', 'string', 'max:100'],
+            'status'        => ['sometimes', 'string', 'in:active,inactive,lead'],
+            'company'       => ['sometimes', 'string', 'max:100'],
+            'sort_by'       => ['sometimes', 'string', 'in:name,email,company,created_at,updated_at'],
+            'sort_dir'      => ['sometimes', 'string', 'in:asc,desc'],
+            'per_page'      => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'page'          => ['sometimes', 'integer', 'min:1'],
+            'only_trashed'  => ['sometimes', 'boolean'],
         ];
     }
 }

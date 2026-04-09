@@ -26,9 +26,8 @@ class CustomerService
     {
         $query = Customer::query();
 
-        // Include soft-deleted records only if explicitly requested
-        if (! empty($filters['with_trashed'])) {
-            $query->withTrashed();
+        if (! empty($filters['only_trashed'])) {
+            $query->onlyTrashed(); 
         }
 
         // Full-text search across name, email, company

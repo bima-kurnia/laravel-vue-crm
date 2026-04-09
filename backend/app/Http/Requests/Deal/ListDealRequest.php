@@ -16,6 +16,17 @@ class ListDealRequest extends FormRequest
     }
 
     /**
+     * Prepare data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            // Convert only_trashed=true from URL query
+            'only_trashed' => filter_var($this->only_trashed, FILTER_VALIDATE_BOOLEAN),
+        ]);
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
@@ -36,7 +47,7 @@ class ListDealRequest extends FormRequest
             'sort_by'             => ['sometimes', 'string', 'in:title,value,stage,status,expected_close_date,created_at'],
             'sort_dir'            => ['sometimes', 'string', 'in:asc,desc'],
             'per_page'            => ['sometimes', 'integer', 'min:1', 'max:100'],
-            'with_trashed'        => ['sometimes', 'boolean'],
+            'only_trashed'        => ['sometimes', 'boolean'],
         ];
     }
 }

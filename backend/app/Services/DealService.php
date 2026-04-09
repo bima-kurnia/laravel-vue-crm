@@ -27,8 +27,8 @@ class DealService
     {
         $query = Deal::query()->with(['customer', 'owner']);
 
-        if (! empty($filters['with_trashed'])) {
-            $query->withTrashed();
+        if (! empty($filters['only_trashed'])) {
+            $query->onlyTrashed(); 
         }
 
         if (! empty($filters['search'])) {
@@ -266,9 +266,6 @@ class DealService
 
     public function delete(string $id): void
     {
-        $deal = $this->findOrFail($id);
-        $deal->delete();
-
         Gate::authorize('manage-records');
 
         $deal = $this->findOrFail($id);
